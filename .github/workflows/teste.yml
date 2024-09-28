@@ -17,16 +17,10 @@ jobs:
         id: test
         run: npm test
 
-      - name: Notificar sucesso
-        if: success()  # Este passo será executado apenas se os testes passarem
+      - name: Notify Discord
+        env:
+          DISCORD_WEBHOOK_URL: https://discord.com/api/webhooks/1289407876200140894/B7SoRiqgceyvw33Usk52DFSt17VDV_CRFV7rYb4Q_Oeyn9lS4mhJNyS3KYq34LNd1G8C
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{
-            "text": "✅ Todos os testes passaram no repositório Sistema de Login em pull request #${{ github.event.pull_request.number }}. Ótimo trabalho!"
-          }' 
-
-      - name: Notificar falha
-        if: failure()  # Este passo será executado apenas se os testes falharem
-        run: |
-          curl -X POST -H 'Content-type: application/json' --data '{
-            "text": "🚨 Os testes falharam no repositório Sistema de Login em pull request #${{ github.event.pull_request.number }}. Confira os logs para mais detalhes."
-          }' 
+          curl -X POST -H "Content-Type: application/json" \
+            -d '{"content": "Build feita com sucesso! ✅\nStatus: `${{ job.status }}`\nAutor: @${{ github.actor }}"}' \
+            $DISCORD_WEBHOOK_URL
