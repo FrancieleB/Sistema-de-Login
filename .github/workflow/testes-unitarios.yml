@@ -21,13 +21,12 @@ jobs:
         if: success()  # Este passo será executado apenas se os testes passarem
         run: |
           curl -X POST -H 'Content-type: application/json' --data '{
-            "text": "✅ Todos os testes passaram no repositório <nome-do-repositorio> em pull request #${{ github.event.pull_request.number }}. Ótimo trabalho!"
-          }' YOUR_SLACK_WEBHOOK_URL
+            "text": "✅ Todos os testes passaram no repositório Sistema de Login em pull request #${{ github.event.pull_request.number }}. Ótimo trabalho!"
+          }' 
 
       - name: Notificar falha
         if: failure()  # Este passo será executado apenas se os testes falharem
         run: |
           curl -X POST -H 'Content-type: application/json' --data '{
-            "text": "🚨 Os testes falharam no repositório <nome-do-repositorio> em pull request #${{ github.event.pull_request.number }}. Confira os logs para mais detalhes."
-          }' YOUR_SLACK_WEBHOOK_URL
-
+            "text": "🚨 Os testes falharam no repositório Sistema de Login em pull request #${{ github.event.pull_request.number }}. Confira os logs para mais detalhes."
+          }' 
