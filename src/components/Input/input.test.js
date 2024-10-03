@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Input from './index'; // Certifique-se de que o caminho está correto
-import '@testing-library/jest-dom/extend-expect'; // Para usar toBeInTheDocument
+import Input from './index'; 
+import '@testing-library/jest-dom/extend-expect'; 
 
 describe('Input Component', () => {
   it('deve renderizar corretamente', () => {

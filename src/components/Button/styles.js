@@ -12,5 +12,7 @@ export const Button = styled.button`
     font-weight: 600;
     font-size: 16px;
     max-width: 350px;
-    
+      &:hover {
+    background-color: #8A2BE2; 
+  }
 `;

@@ -2,7 +2,7 @@ import React from 'react';
 import '@testing-library/jest-dom/extend-expect';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import Home from './index'; // Certifique-se de que o caminho está correto
+import Home from './index'; 
 import useAuth from '../../hooks/useAuth';
 
 jest.mock('../../hooks/useAuth');

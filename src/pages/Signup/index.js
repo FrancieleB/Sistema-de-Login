@@ -3,43 +3,73 @@ import Input from '../../components/Input';
 import Button from '../../components/Button';
 import * as C from './styles';
 import { Link, useNavigate } from 'react-router-dom';
-import useAuth from '../../hooks/useAuth';
+import firebase from '../../firebase';
 
-
-const Signup= () => {
-  const [email, setEmail] = useState("");
-  const [emailConf, setEmailConf] = useState("");
-  const [senha, setSenha] = useState("");
-  const [error, setError] = useState("");
+const Signup = () => {
+  const [nome, setNome] = useState('');
+  const [sobrenome, setSobrenome] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
+  const [email, setEmail] = useState('');
+  const [emailConf, setEmailConf] = useState('');
+  const [senha, setSenha] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { signup } = useAuth();
- 
-  const handleSignup = () => {
-    if (!email || !senha) {
+
+  const handleSignup = async () => {
+    if (!nome || !sobrenome || !dataNascimento || !email || !senha) {
       setError('Preencha todos os campos');
       return;
     } else if (email !== emailConf) {
-      setError("Os e-mails não são iguais");
+      setError('Os e-mails não são iguais');
       return;
     }
 
-    const res = signup(email, senha);
+    try {
+      const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, senha);
+      const user = userCredential.user;
 
-    if (res) {
-      setError(res);
-      return;
+      // Atualiza o displayName do usuário
+      await user.updateProfile({
+        displayName: `${nome} ${sobrenome}`
+      });
+
+      // Salva os dados do usuário no Firestore
+      await firebase.firestore().collection('users').doc(user.uid).set({
+        nome,
+        sobrenome,
+        dataNascimento,
+        email,
+      });
+
+      alert('Usuário cadastrado com sucesso!');
+      navigate('/'); // Redireciona para a página inicial ou de login
+    } catch (error) {
+      setError('Erro ao cadastrar: ' + error.message);
     }
-
-    alert("Usuário cadastrado com sucesso!");
-
-    navigate('/');
   };
 
-
-  return  (
+  return (
     <C.Container>
       <C.Label>Cadastro</C.Label>
       <C.Content>
+        <Input
+          type="text"
+          placeholder="Digite seu Nome"
+          value={nome}
+          onChange={(e) => [setNome(e.target.value), setError('')]}
+        />
+        <Input
+          type="text"
+          placeholder="Digite seu Sobrenome"
+          value={sobrenome}
+          onChange={(e) => [setSobrenome(e.target.value), setError('')]}
+        />
+        <Input
+          type="date"
+          placeholder="Data de Nascimento"
+          value={dataNascimento}
+          onChange={(e) => [setDataNascimento(e.target.value), setError('')]}
+        />
         <Input
           type="email"
           placeholder="Digite seu E-mail"
@@ -58,18 +88,17 @@ const Signup= () => {
           value={senha}
           onChange={(e) => [setSenha(e.target.value), setError('')]}
         />
-        <C.LabelError>{error}</C.LabelError>
+        {error && <C.LabelError>{error}</C.LabelError>}
         <Button Text="Inscrever-se" onClick={handleSignup} />
         <C.LabelSignup>
           Já tem uma conta?
           <C.Strong>
-            <Link to="/signup"> Entre</Link>
+            <Link to="/signin"> Entre</Link>
           </C.Strong>
         </C.LabelSignup>
       </C.Content>
     </C.Container>
-  )
-  
+  );
 };
 
 export default Signup;

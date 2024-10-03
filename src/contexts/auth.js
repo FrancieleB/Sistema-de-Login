@@ -1,4 +1,5 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState, useMemo } from "react";
+import firebase from "../firebase";
 
 export const AuthContext = createContext({});
 
@@ -6,66 +7,71 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        const userToken = localStorage.getItem("user_token");
-        const userStorage = localStorage.getItem("users_db");
-        
-        if (userToken && userStorage) {
-            const hasUser = JSON.parse(userStorage)?.filter(
-                (user) => user.email === JSON.parse(userToken).email
-            );
-            if (hasUser.length > 0) setUser(hasUser[0]);
-        }
+        const unsubscribe = firebase.auth().onAuthStateChanged(async (currentUser) => {
+            if (currentUser) {
+                const userDoc = await firebase.firestore().collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    setUser({ ...currentUser, ...userData });
+                } else {
+                    setUser(currentUser);
+                }
+            } else {
+                setUser(null);
+            }
+        });
+
+        return () => unsubscribe();
     }, []);
 
-    const signin = (email, password) => {
-        const userStorage = JSON.parse(localStorage.getItem("users_db"));
-
-        const hasUser = userStorage?.filter((user) => user.email === email);
-
-        if (hasUser?.length) {
-            if (hasUser[0].email === email && hasUser[0].password === password) {
-                const token = Math.random().toString(36).substring(2);
-                localStorage.setItem("user_token", JSON.stringify({ email, token }));
-                setUser({ email, password });
-                return;
+    const signin = async (email, password) => {
+        try {
+            const { user } = await firebase.auth().signInWithEmailAndPassword(email, password);
+            const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                setUser({ ...user, ...userData });
             } else {
-                return "E-mail ou senha incorretos";
+                setUser(user);
             }
-        } else {
-            return "Usuário não cadastrado";
+        } catch (error) {
+            throw new Error(error.message);
         }
     };
 
-    const signup = (email, password) => {
-        const userStorage = JSON.parse(localStorage.getItem("users_db"));
-
-        const hasUser = userStorage?.filter((user) => user.email === email);
-
-        if (hasUser?.length) {
-            return "Já existe uma conta com este E-mail";
+    const signup = async (email, password, firstName, lastName, birthDate) => {
+        try {
+            const { user } = await firebase.auth().createUserWithEmailAndPassword(email, password);
+            await user.updateProfile({ displayName: `${firstName} ${lastName}` });
+            await firebase.firestore().collection('users').doc(user.uid).set({
+                nome: firstName,
+                sobrenome: lastName,
+                dataNascimento: birthDate,
+                email,
+            });
+            setUser({ ...user, nome: firstName, sobrenome: lastName, dataNascimento: birthDate });
+        } catch (error) {
+            throw new Error(error.message);
         }
-
-        let newUser;
-        if (userStorage) {
-            newUser = [...userStorage, { email, password }];
-        } else {
-            newUser = [{ email, password }];
-        }
-        localStorage.setItem("users_db", JSON.stringify(newUser));
-
-        return;
     };
 
-    const signout = () => {
+    const signout = async () => {
+        await firebase.auth().signOut();
         setUser(null);
-        localStorage.removeItem("user_token");
     };
+
+    const value = useMemo(() => ({
+        user,
+        signed: !!user,
+        signin,
+        signup,
+        signout,
+    }), [user]);
 
     return (
-        <AuthContext.Provider
-            value={{ user, signed: !!user, signin, signup, signout }}
-        >
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
 };
+
