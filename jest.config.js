@@ -198,7 +198,13 @@ const config = {
 module.exports = {
   testEnvironment: 'jsdom',
   transform: {
-    '^.+\\.jsx?$': 'babel-jest', // Certifique-se de que está usando babel-jest
+    '^.+\\.jsx?$': 'babel-jest', 
+  },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  moduleNameMapper: {
+    '^firebase/app$': '<rootDir>/__mocks__/firebase.js',
+    '^firebase/auth$': '<rootDir>/__mocks__/firebase.js',
+    '^firebase/firestore$': '<rootDir>/__mocks__/firebase.js',
   },
 };
 

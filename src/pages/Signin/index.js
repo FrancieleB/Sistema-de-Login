@@ -3,34 +3,34 @@ import Input from '../../components/Input';
 import Button from '../../components/Button';
 import * as C from './styles';
 import { Link, useNavigate } from 'react-router-dom';
-import useAuth from '../../hooks/auth/useAuth';
+import firebase from '../../firebase';
 
 const Signin = () => {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { signin } = useAuth();
 
   const handleLogin = () => {
     if (!email || !senha) {
       setError('Preencha todos os campos');
       return;
     }
-
-    const res = signin(email, senha);
-
-    if (res) {
-      setError(res);
-      return;
-    }
-
-    navigate('/home');
+    console.log("Tentando fazer login...");
+    firebase.auth().signInWithEmailAndPassword(email, senha)
+      .then(() => {
+        console.log("Login bem-sucedido!");
+        navigate('/home');
+      })
+      .catch((error) => {
+        console.error("Erro ao fazer login:", error.message);
+        setError('Erro ao fazer login: ' + error.message);
+      });
   };
 
   return (
     <C.Container>
-      <C.Label>SISTEMA DE LOGIN</C.Label>
+      <C.Label>LOGIN</C.Label>
       <C.Content>
         <Input
           type="email"
@@ -49,7 +49,7 @@ const Signin = () => {
         <C.LabelSigin>
           Não tem conta?
           <C.Strong>
-            <Link to="/signup">&nbsp; Registre-se</Link>
+            <Link to="/signup">  Registre-se</Link>
           </C.Strong>
         </C.LabelSigin>
       </C.Content>
@@ -58,3 +58,4 @@ const Signin = () => {
 };
 
 export default Signin;
+

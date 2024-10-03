@@ -1,7 +1,7 @@
 import React from 'react';
 import '@testing-library/jest-dom/extend-expect';
 import { render, screen, fireEvent } from '@testing-library/react';
-import Button from './index'; // Ajuste o caminho conforme necessário
+import Button from './index'; 
 
 describe('Button Component', () => {
   test('deve renderizar corretamente', () => {
